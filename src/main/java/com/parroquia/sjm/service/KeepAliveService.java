@@ -14,7 +14,7 @@ public class KeepAliveService {
     private final WebClient webClient;
 
     // URL completa con el endpoint de salud
-    @Value("${RENDER_EXTERNAL_URL:https://project-psjm.onrender.com/api/v1/psjm/health}")
+    @Value("${RENDER_EXTERNAL_URL:https://psjm-239s.onrender.com/api/v1/psjm/health}")
     private String selfUrl;
 
     public KeepAliveService(WebClient.Builder webClientBuilder) {

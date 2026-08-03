@@ -28,6 +28,7 @@ public class ParroquiaSJMController {
     private final BautizosService bautizosService;
     private final HorarioService horarioService;
     private final UsuarioService usuarioService;
+    private final DocumentoService documentoService;
 
     private static final String MS_WORD_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
@@ -35,12 +36,14 @@ public class ParroquiaSJMController {
                                   MisaComunitariaService misaComunitariaService, 
                                   BautizosService bautizosService, 
                                   HorarioService horarioService, 
-                                  UsuarioService usuarioService) {
+                                  UsuarioService usuarioService,
+                                  DocumentoService documentoService) {
         this.misaParticularService = misaParticularService;
         this.misaComunitariaService = misaComunitariaService;
         this.bautizosService = bautizosService;
         this.horarioService = horarioService;
         this.usuarioService = usuarioService;
+        this.documentoService = documentoService;
     }
 
     @GetMapping("/health")
@@ -153,5 +156,33 @@ public class ParroquiaSJMController {
                         .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Misa_Comunitaria_" + fecha + "_" + horaCorta + ".docx")
                         .contentType(MediaType.parseMediaType(MS_WORD_TYPE))
                         .body(bytes));
+    }
+
+    /**
+     * Sirve un documento .docx (guía de instalación, manual de usuario, etc.)
+     * almacenado en resources/templates/manuales/.
+     * El frontend lo convierte a HTML con Mammoth.js para vista previa,
+     * y puede descargarlo como archivo .docx original.
+     */
+    @GetMapping("/consultar/documento")
+    public Mono<ResponseEntity<byte[]>> consultarDocumento(@RequestParam String nombre) {
+        return documentoService.obtenerDocumento(nombre)
+                .map(reporte -> ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=" + reporte.nombreArchivo())
+                        .contentType(MediaType.parseMediaType(MS_WORD_TYPE))
+                        .body(reporte.contenido()));
+    }
+
+    /**
+     * Sirve un instalador .rar (Windows, Android, iOS) almacenado en
+     * resources/templates/instaladores/. Se descarga como attachment.
+     */
+    @GetMapping("/descargar/instalador")
+    public Mono<ResponseEntity<byte[]>> descargarInstalador(@RequestParam String nombre) {
+        return documentoService.obtenerInstalador(nombre)
+                .map(reporte -> ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + reporte.nombreArchivo())
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(reporte.contenido()));
     }
 }
